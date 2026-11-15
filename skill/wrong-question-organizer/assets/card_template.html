@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>__TITLE__</title>
+<style>
+@page { size: A4; margin: 8mm 10mm 12mm 10mm; }
+* { box-sizing: border-box; }
+body { margin:0; font-family:"Noto Sans CJK SC","Noto Sans SC","PingFang SC",sans-serif; color:#1a1a1a;
+       -webkit-print-color-adjust: exact; }
+.card { position:relative; border:0.6pt solid #bbb; padding:3.6mm 4mm 4mm; margin:0 0 5mm 0;
+        break-inside:avoid; page-break-inside:avoid; }
+.card:last-child { margin-bottom:0; }
+/* 四角 5mm 裁切角标：裁下单题贴本子用 */
+.card::before, .card::after { content:""; position:absolute; width:5mm; height:5mm; }
+.card::before { top:-0.6pt; left:-0.6pt; border-top:0.6pt solid #444; border-left:0.6pt solid #444; }
+.card::after  { top:-0.6pt; right:-0.6pt; border-top:0.6pt solid #444; border-right:0.6pt solid #444; }
+.card > .cm1, .card > .cm2 { position:absolute; width:5mm; height:5mm; }
+.card > .cm1 { bottom:-0.6pt; left:-0.6pt; border-bottom:0.6pt solid #444; border-left:0.6pt solid #444; }
+.card > .cm2 { bottom:-0.6pt; right:-0.6pt; border-bottom:0.6pt solid #444; border-right:0.6pt solid #444; }
+.hd { display:flex; align-items:center; gap:2.5mm; margin-bottom:2.2mm; flex-wrap:wrap; }
+.no { font-weight:700; font-size:9.5pt; letter-spacing:.4pt; }
+.tag { font-size:8pt; border:0.5pt solid #999; padding:0.4mm 1.6mm; border-radius:1mm; color:#333; }
+.tag.err { border-color:#c0392b; color:#c0392b; }
+.sp { flex:1; }
+.sub { font-size:8pt; color:#666; }
+.qimg { display:block; max-width:100%; margin:0 0 2.4mm 0; }
+.grid { display:grid; grid-template-columns:1fr 1fr; border-top:0.5pt solid #ccc; }
+.cell { padding:1.8mm 2.4mm; font-size:8.6pt; line-height:1.5; }
+.cell:nth-child(odd) { border-right:0.5pt solid #ccc; }
+.cell:nth-child(-n+2) { border-bottom:0.5pt solid #ccc; }
+.k { font-size:7.4pt; color:#777; letter-spacing:.5pt; margin-bottom:0.8mm; display:block; }
+.wrong { color:#c0392b; }
+.ok { color:#1e6b3a; }
+.foot { font-size:7.4pt; color:#999; margin-top:2mm; }
+.nothing { font-size:11pt; color:#888; padding:30mm 0; text-align:center; }
+</style></head>
+<body data-page-content-mm="277">__CARDS__</body></html>
