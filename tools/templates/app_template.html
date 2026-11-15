@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>错题整理 · __MODE__</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<style>
+:root{ --ink:#111; --sub:#666; --line:#e3e3e3; --bg:#fff; --soft:#f6f6f4; }
+*{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body{ margin:0; font-family:-apple-system,"PingFang SC","Noto Sans CJK SC",system-ui,sans-serif;
+      color:var(--ink); background:var(--bg); font-size:15px; line-height:1.6; }
+.wrap{ max-width:820px; margin:0 auto; padding:14px 16px 40px; }
+.sub{ color:var(--sub); font-size:12.5px; }
+
+tabs
+.tabs{ display:flex; gap:6px; position:sticky; top:0; background:var(--bg); padding:8px 0 10px; z-index:5;
+       border-bottom:1px solid var(--line); overflow-x:auto; }
+.tab{ flex:0 0 auto; padding:7px 14px; border-radius:999px; border:1px solid var(--line); background:#fff;
+      font-size:13.5px; color:var(--sub); cursor:pointer; }
+.tab.on{ background:var(--ink); color:#fff; border-color:var(--ink); }
+
+.pane{ display:none; padding-top:14px; }
+.pane.on{ display:block; }
+
+.gal{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+@media (min-width:720px){ .gal{ grid-template-columns:1fr 1fr 1fr; } }
+.gitem{ border:1px solid var(--line); border-radius:8px; overflow:hidden; cursor:pointer; background:#fff; }
+.gitem img{ width:100%; display:block; background:#fff; }
+.gitem .meta{ padding:7px 9px; font-size:12px; color:var(--sub); display:flex; justify-content:space-between; gap:6px;
+              white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+.smps{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.smp{ border:1px solid var(--line); border-radius:8px; padding:0; overflow:hidden; cursor:pointer; background:#fff; }
+.smp:active{ border-color:#999; }
+.smp img{ width:100%; display:block; }
+.smp div{ padding:6px 8px; font-size:12px; color:var(--sub); }
+
+#probe{ width:100%; min-height:70px; border:1px solid var(--line); border-radius:8px; padding:10px;
+        font:inherit; font-size:13.5px; resize:vertical; }
+.btn{ display:inline-block; margin-top:10px; padding:10px 18px; border-radius:8px; border:1px solid var(--ink);
+      background:var(--ink); color:#fff; font-size:14px; cursor:pointer; }
+.btn.ghost{ background:#fff; color:var(--ink); }
+
+#matchBox{ margin-top:14px; }
+.cand{ display:flex; gap:10px; align-items:center; border:1px solid var(--line); border-radius:8px; padding:8px;
+       margin-bottom:8px; }
+.cand img{ width:64px; height:46px; object-fit:cover; border-radius:4px; background:#fff; flex:0 0 auto; }
+.cand .grow{ flex:1; min-width:0; }
+.cand .t{ font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cand .s{ font-size:11.5px; color:var(--sub); }
+.cand.best{ border-color:#111; box-shadow:0 0 0 1px #111 inset; }
+.cand button{ flex:0 0 auto; padding:7px 12px; border-radius:7px; border:1px solid var(--ink); background:#fff;
+             font-size:12.5px; cursor:pointer; }
+
+.sec-h{ display:flex; align-items:baseline; gap:6px; white-space:nowrap; margin:6px 0 10px; font-size:13px; color:var(--sub); }
+.sec-h b{ color:var(--ink); font-size:15px; }
+
+.card{ border:1px solid var(--line); border-radius:10px; padding:12px; margin-bottom:12px; background:#fff; }
+.card .hd{ display:flex; gap:6px; flex-wrap:wrap; align-items:center; font-size:12px; margin-bottom:8px; }
+.tag{ border:1px solid var(--line); border-radius:999px; padding:2px 8px; font-size:11.5px; color:var(--sub); }
+.tag.err{ border-color:#c0392b; color:#c0392b; }
+.card img{ width:100%; display:block; border-radius:4px; background:#fff; }
+.grid{ display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--line); margin-top:9px; border:1px solid var(--line); }
+.grid > div{ background:#fff; padding:8px 9px; font-size:12.5px; }
+.grid .k{ display:block; font-size:11px; color:var(--sub); margin-bottom:3px; }
+.wrong{ color:#c0392b; } .ok{ color:#1e6b3a; }
+
+.empty{ padding:40px 0; text-align:center; color:var(--sub); font-size:13.5px; }
+.bar{ display:flex; gap:8px; align-items:center; margin:6px 0 14px; flex-wrap:wrap; }
+.stat{ font-size:12.5px; color:var(--sub); }
+
+/* ---- 打印：A4、单题不跨页、四角裁切角标 ---- */
+@media print{
+  @page{ size:A4; margin:8mm 10mm 12mm 10mm; }
+  body{ background:#fff; }
+  .wrap{ max-width:none; padding:0; }
+  .tabs,.bar,#panelImport,#panelGallery,.no-print{ display:none !important; }
+  h1{ font-size:12pt; margin:0 0 4mm 0; }
+  .sub{ display:none; }
+  .card{ border:0.6pt solid #bbb; border-radius:0; padding:3.5mm 4mm; margin:0 0 5mm 0;
+         break-inside:avoid; page-break-inside:avoid; position:relative; }
+  .card img{ max-width:100%; }
+  .grid > div{ font-size:8.6pt; }
+  .card::before,.card::after,.card .cm1,.card .cm2{ content:""; position:absolute; width:5mm; height:5mm; }
+  .card::before{ top:-0.6pt; left:-0.6pt; border-top:0.6pt solid #444; border-left:0.6pt solid #444; }
+  .card::after{ top:-0.6pt; right:-0.6pt; border-top:0.6pt solid #444; border-right:0.6pt solid #444; }
+  .card .cm1{ bottom:-0.6pt; left:-0.6pt; border-bottom:0.6pt solid #444; border-left:0.6pt solid #444; }
+  .card .cm2{ bottom:-0.6pt; right:-0.6pt; border-bottom:0.6pt solid #444; border-right:0.6pt solid #444; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 style="font-size:19px;margin:4px 0 2px">错题整理</h1>
+  <div class="sub">拍照 → 图库匹配 → 错题卡 → 打印。数据全内联，离线可用。</div>
+
+  <div class="tabs" id="tabs">
+    __TABS__
+  </div>
+
+  <div class="pane on" id="panelGallery">
+    <div class="sec-h"><b>图库</b><span id="galCount"></span></div>
+    <div class="gal" id="galList"></div>
+  </div>
+
+  <div class="pane" id="panelImport">
+    <div class="sec-h"><b>样张照片</b><span>点一张，看匹配过程</span></div>
+    <div class="smps" id="smpList"></div>
+    <div style="margin-top:16px">
+      <div class="sec-h"><b>或手动录入指纹</b></div>
+      <textarea id="probe" placeholder='{"numbers":["6 V","1 Ω"],"formulas":["R1=2Ω"],"stem_keywords":"电源电动势 内阻 闭合开关"}'></textarea>
+      <div><button class="btn" id="btnMatch">匹配图库</button>
+           <button class="btn ghost" id="btnGoBook">去看错题本</button></div>
+    </div>
+    <div id="matchBox"></div>
+  </div>
+
+  <div class="pane" id="panelBook">
+    <div class="bar">
+      <div class="stat" id="bookStat">0 题</div>
+      <button class="btn ghost" id="btnPrint">打印 / 导 PDF</button>
+      <button class="btn ghost" id="btnClear">清空</button>
+    </div>
+    <div id="bookList"></div>
+  </div>
+</div>
+
+<script>
+const MODE = "__MODE__";
+const DATA = __DATA__;
+
+/* ---------- 与 Python 端完全一致的打分 ---------- */
+const norm = s => String(s||'').replace(/\s+/g,'').replace(/_/g,'').toLowerCase();
+function toks(nums){
+  const out = new Set();
+  for(const n of nums||[]){
+    const t = norm(n).replace(/−/g,'-').replace(/′/g,"'"); out.add(t);
+    const d = t.replace(/[^0-9.\-]/g,''); if(d) out.add(d);
+  }
+  return out;
+}
+function bigrams(s){
+  s = norm(s); if(s.length<2) return new Set([s]);
+  const o = new Set(); for(let i=0;i<s.length-1;i++) o.add(s.slice(i,i+2)); return o;
+}
+function jac(a,b){ if(!a.size||!b.size) return 0; let i=0; for(const x of a) if(b.has(x)) i++; return i/(a.size+b.size-i); }
+function ovl(a,b){ if(!a.size||!b.size) return 0; let i=0; for(const x of a) if(b.has(x)) i++; return i/Math.min(a.size,b.size); }
+function ham(h1,h2){ if(!h1||!h2) return 99; let d=0; const n=Math.min(h1.length,h2.length);
+  for(let i=0;i<n;i++) if(h1[i]!==h2[i]) d++; return d + Math.abs(h1.length-h2.length); }
+function score(it,p){
+  const n = ovl(toks(p.numbers), toks(it.numbers));
+  const f = jac(new Set((p.formulas||[]).map(norm)), new Set((it.formulas||[]).map(norm)));
+  const t = jac(bigrams(p.stem_keywords||''), bigrams(it.stem_text||''));
+  const v = p.dhash && it.dhash ? Math.max(0, 1-ham(p.dhash,it.dhash)/40) : 0;
+  const total = 0.45*n + 0.30*f + 0.20*t + 0.05*v;
+  return { total:+total.toFixed(4), detail:{numbers:+n.toFixed(3),formulas:+f.toFixed(3),text:+t.toFixed(3),visual:+v.toFixed(3)} };
+}
+function match(p){
+  const scored = DATA.items.map(it => ({ it, ...score(it,p) })).sort((a,b)=>b.total-a.total);
+  const best = scored.length? scored[0].total : 0;
+  const action = best>=0.80?'auto' : (best>=0.45?'confirm':'reject');
+  return { action, best, gap:+(scored.length>1?scored[0].total-scored[1].total:best).toFixed(3), top:scored.slice(0,3) };
+}
+
+/* ---------- 状态 ---------- */
+const BOOK = [];
+const $ = s => document.querySelector(s);
+const esc = s => String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+function tabs(){
+  const list = [['gallery','图库'],['import','导入'],['book','错题本']];
+  $('#tabs').innerHTML = list.map(([k,t],i)=>`<button class="tab${i===0?' on':''}" data-tab="${k}">${t}</button>`).join('');
+  $('#tabs').addEventListener('click', e=>{
+    const b = e.target.closest('.tab'); if(!b) return;
+    document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on', x===b));
+    document.querySelectorAll('.pane').forEach(p=>p.classList.remove('on'));
+    $('#panel'+b.dataset.tab[0].toUpperCase()+b.dataset.tab.slice(1)).classList.add('on');
+  });
+}
+
+function renderGallery(){
+  $('#galCount').textContent = DATA.items.length + ' 题';
+  $('#galList').innerHTML = DATA.items.map(it=>`
+    <div class="gitem" title="${esc(it.stem_text)}">
+      <img src="${it.thumb}" loading="lazy">
+      <div class="meta"><span>${esc(it.id)}</span><span>${esc(it.subject)}</span></div>
+    </div>`).join('');
+}
+
+function renderSamples(){
+  $('#smpList').innerHTML = DATA.samples.map((s,i)=>`
+    <button class="smp" data-i="${i}"><img src="${s.thumb}" loading="lazy"><div>${esc(s.file)}</div></button>`).join('');
+  $('#smpList').addEventListener('click', e=>{
+    const b = e.target.closest('.smp'); if(!b) return;
+    const s = DATA.samples[+b.dataset.i];
+    showMatch(match(s.features), s);
+  });
+}
+
+function showMatch(r, sample){
+  const labels = {auto:'自动采用', confirm:'需确认', reject:'未命图库'};
+  const head = `<div class="sec-h"><b>${labels[r.action]}</b>
+      <span>best ${r.best.toFixed(3)} · gap ${r.gap.toFixed(2)}${sample?' · '+esc(sample.file):''}</span></div>`;
+  if(r.action==='reject'){
+    $('#matchBox').innerHTML = head + `<div class="empty">置信不足，不猜题。建议把这张照片补进图库后重建索引。</div>`;
+    return;
+  }
+  $('#matchBox').innerHTML = head + r.top.map((c,i)=>`
+    <div class="cand${i===0?' best':''}">
+      <img src="${c.it.thumb}">
+      <div class="grow"><div class="t">${esc(c.it.stem_text)}</div>
+        <div class="s">${esc(c.it.id)} · ${c.total.toFixed(3)} · 数${c.detail.numbers} 式${c.detail.formulas} 文${c.detail.text}</div></div>
+      <button data-add="${esc(c.it.id)}">加入</button>
+    </div>`).join('');
+  $('#matchBox').querySelectorAll('[data-add]').forEach(btn=>{
+    btn.addEventListener('click', ()=>addToBook(btn.dataset.add, r.best, r.action));
+  });
+}
+
+function addToBook(id, score, action){
+  const it = DATA.items.find(x=>x.id===id); if(!it) return;
+  if(BOOK.some(c=>c.id===id)) return;
+  BOOK.push({ ...it, match_score: score, action });
+  renderBook();
+  $('#tabs').querySelector('[data-tab="book"]').click();
+}
+
+function renderBook(){
+  $('#bookStat').textContent = BOOK.length + ' 题 · 约 ' + Math.max(1, Math.ceil(BOOK.length/3)) + ' 页';
+  if(!BOOK.length){ $('#bookList').innerHTML = '<div class="empty">还没有错题。去「导入」里点一张样张，或录入指纹匹配。</div>'; return; }
+  $('#bookList').innerHTML = BOOK.map((c,i)=>`
+    <div class="card">
+      <i class="cm1"></i><i class="cm2"></i>
+      <div class="hd">
+        <span class="tag">${i+1}</span><span class="tag">${esc(c.id)}</span>
+        ${(c.knowledge||[]).map(k=>`<span class="tag">${esc(k)}</span>`).join('')}
+        <span class="tag err">${esc(c.error_type)}</span>
+        <span class="sub" style="margin-left:auto">${esc(c.subject)}</span>
+      </div>
+      <img src="${c.img}">
+      <div class="grid">
+        <div><span class="k">我的错解</span><span class="wrong">${esc(c.my_answer||'—')}</span></div>
+        <div><span class="k">正确解</span><span class="ok">${esc(c.answer||'—')}</span></div>
+        <div><span class="k">错在哪</span>${esc(c.why||'—')}</div>
+        <div><span class="k">图库命中</span>${c.match_score != null ? Number(c.match_score).toFixed(3) : '手动'}</div>
+      </div>
+    </div>`).join('');
+}
+
+/* ---------- 启动 ---------- */
+tabs(); renderGallery(); renderSamples(); renderBook();
+
+$('#btnMatch').addEventListener('click', ()=>{
+  let p; try{ p = JSON.parse($('#probe').value); }catch(e){ $('#matchBox').innerHTML='<div class="empty">指纹 JSON 格式不对</div>'; return; }
+  showMatch(match(p));
+});
+$('#btnGoBook').addEventListener('click', ()=> $('#tabs').querySelector('[data-tab="book"]').click());
+$('#btnPrint').addEventListener('click', ()=> window.print());
+$('#btnClear').addEventListener('click', ()=>{ BOOK.length=0; renderBook(); });
+
+if(MODE==='app' && 'serviceWorker' in navigator){
+  navigator.serviceWorker.register('./sw.js').then(()=>console.log('SW ok')).catch(e=>console.log('SW fail', e));
+}
+</script>
+</body>
+</html>
