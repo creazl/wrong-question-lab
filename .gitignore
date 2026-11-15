@@ -1,0 +1,12 @@
+# ---- 构建产物 / 可复现产物（不进仓） ----
+web/index.html
+app/index.html
+app/sw.js
+app/manifest.webmanifest
+demo/gallery/index.json
+demo/gallery/img/*.png
+demo/photos/*.jpg
+demo/output/*
+__pycache__/
+*.pyc
+.DS_Store
