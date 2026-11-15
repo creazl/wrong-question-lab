@@ -1,0 +1,18 @@
+{
+  "id": "q_hx_0001",
+  "confidence": 0.9,
+  "numbers": [
+    "104.5°",
+    "107°",
+    "109°28′",
+    "180°"
+  ],
+  "formulas": [
+    "H2O",
+    "NH3",
+    "CH4",
+    "CO2"
+  ],
+  "stem_keywords": "下列分子中，键角最大的是",
+  "detected_write": "答案：C"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "q_sx_0001",
+  "confidence": 0.87,
+  "numbers": [
+    "x^3",
+    "-3x^2",
+    "+2",
+    "f(2)=-2"
+  ],
+  "formulas": [
+    "f'(x)=3x^2-6x"
+  ],
+  "stem_keywords": "已知函数 f(x)=x<",
+  "detected_write": "f'(x)=3x²-6x, 极值点 x=0"
+}

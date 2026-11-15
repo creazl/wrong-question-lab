@@ -1,0 +1,14 @@
+{
+  "id": "q_sx_0002",
+  "confidence": 0.94,
+  "numbers": [
+    "(x+1/x)^6",
+    "15",
+    "20"
+  ],
+  "formulas": [
+    "C(6,3)"
+  ],
+  "stem_keywords": "二项式 (x + 1/x",
+  "detected_write": "选 A"
+}

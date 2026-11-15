@@ -1,0 +1,19 @@
+{
+  "id": "q_wl_0001",
+  "confidence": 0.88,
+  "numbers": [
+    "6 V",
+    "1 Ω",
+    "2 Ω",
+    "3 Ω",
+    "1.0 A"
+  ],
+  "formulas": [
+    "E=6V",
+    "r=1Ω",
+    "R1=2Ω",
+    "R2=3Ω"
+  ],
+  "stem_keywords": "如图，电源电动势 E=6",
+  "detected_write": "I = 6/2 = 3A"
+}

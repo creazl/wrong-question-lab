@@ -1,0 +1,13 @@
+{
+  "id": "q_wl_0002",
+  "confidence": 0.88,
+  "numbers": [
+    "90°"
+  ],
+  "formulas": [
+    "mv/(qB)",
+    "qvB"
+  ],
+  "stem_keywords": "一质量为 m、电荷量为 ",
+  "detected_write": "选 C"
+}
