@@ -13,7 +13,8 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parents[1]
 GAL = ROOT / "demo/gallery"
 PHO = ROOT / "demo/photos"
-TPL = ROOT / "tools/templates/app_template.html"
+TPL_HEAD = ROOT / "tools/templates/app_template.head.html"
+TPL_JS = ROOT / "tools/templates/app_client.js"
 
 
 def data_url(path, max_w):
@@ -50,10 +51,13 @@ def build_data():
 
 
 def render_html(data, mode):
-    tpl = TPL.read_text(encoding="utf-8")
+    """模板拆成 head.html + app_client.js 两段，拼回完整页面后注入数据。
+    拆分原因：单文件模板体积偏大，拆开后更易阅读与 diff，拼接结果字节等价。"""
+    head = TPL_HEAD.read_text(encoding="utf-8")
+    js = TPL_JS.read_text(encoding="utf-8")
+    tpl = head + "<script>\n" + js + "</script>\n</body>\n</html>\n"
     payload = json.dumps(data, ensure_ascii=False)
-    html = tpl.replace("__MODE__", mode).replace("__DATA__", payload)
-    return html
+    return tpl.replace("__MODE__", mode).replace("__DATA__", payload)
 
 
 if __name__ == "__main__":
