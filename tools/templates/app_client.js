@@ -1,0 +1,209 @@
+const MODE = "__MODE__";
+const DATA = __DATA__;
+const KEY = "wqn_cards_v1";
+const ERRS = {K01:"K01 知识盲区",K02:"K02 方法不会",K03:"K03 计算失误",K04:"K04 审题偏差",K05:"K05 时间不够"};
+let cards = load();
+let filter = "all";
+
+function load(){ try{ return JSON.parse(localStorage.getItem(KEY))||[] }catch(e){ return [] } }
+function save(){ localStorage.setItem(KEY, JSON.stringify(cards)); }
+
+/* ---------- 与 python 端一致的打分 ---------- */
+const norm = s => String(s||"").replace(/[\s　_]/g,"").toLowerCase();
+const toks = arr => { const o=new Set(); (arr||[]).forEach(n=>{ const t=norm(n); o.add(t);
+  const d=t.replace(/[^0-9.\-]/g,""); if(d) o.add(d); }); return o; };
+const bigr = s => { s=norm(s); const o=new Set(); for(let i=0;i<s.length-1;i++) o.add(s.slice(i,i+2)); return o; };
+const jac=(a,b)=>(!a.size||!b.size)?0:[...a].filter(x=>b.has(x)).length/[...new Set([...a,...b])].length;
+const ovl=(a,b)=>(!a.size||!b.size)?0:[...a].filter(x=>b.has(x)).length/Math.min(a.size,b.size);
+function ham(h1,h2){ let x=0; for(let i=0;i<Math.min(h1.length,h2.length);i++) if(h1[i]!==h2[i]) x++; return x; }
+function score(it,p){
+  const n=ovl(toks(p.numbers),toks(it.numbers)), f=jac(new Set((p.formulas||[]).map(norm)),new Set((it.formulas||[]).map(norm)));
+  const t=jac(bigr(p.stem_keywords||""),bigr(it.stem_text||""));
+  let vis=0; if(p.dhash) vis=Math.max(0,1-ham(p.dhash,it.dhash)/40);
+  return {s:0.45*n+0.30*f+0.20*t+0.05*vis,d:{numbers:n,formulas:f,text:t,visual:vis}};
+}
+function match(p){
+  const r = DATA.items.map(it=>{const x=score(it,p); return {...it, s:+x.s.toFixed(4), d:x.d};});
+  r.sort((a,b)=>b.s-a.s);
+  const best=r[0].s, gap=+(r[0].s-(r[1]?r[1].s:0)).toFixed(3);
+  return {top:r.slice(0,3), best, gap, action: best>=0.8?"auto":(best>=0.45?"confirm":"reject")};
+}
+
+/* ---------- 客户端 dHash（真实上传图片时可用） ---------- */
+function dhashOf(img){
+  const c=document.createElement("canvas"); c.width=9; c.height=8;
+  const x=c.getContext("2d"); x.drawImage(img,0,0,9,8);
+  const d=x.getImageData(0,0,9,8).data; let bits="";
+  for(let y=0;y<8;y++) for(let i=0;i<8;i++){
+    const a=(y*9+i)*4, b=(y*9+i+1)*4;
+    const g1=d[a]*.3+d[a+1]*.59+d[a+2]*.11, g2=d[b]*.3+d[b+1]*.59+d[b+2]*.11;
+    bits+= g1>g2?"1":"0";
+  }
+  return bits;
+}
+
+/* ---------- 渲染 ---------- */
+function css(s){ return (s||"").replace(/[<>&]/g, m=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[m])); }
+function subjectOf(c){ return c.subject==="化学"?"chem":c.subject==="物理"?"phys":"math"; }
+function dueToday(c){ return true; }
+
+function renderSamples(){
+  const box=document.getElementById("samples");
+  box.innerHTML = DATA.samples.map(s=>`<button class="smp" data-file="${s.file}">
+      <img src="${s.thumb}" alt=""><div class="nm">${s.file.replace(/_photo\.jpg/,"")}</div></button>`).join("");
+  document.getElementById("smpCount").textContent = DATA.samples.length + " 张";
+  box.querySelectorAll(".smp").forEach(b=>b.onclick=()=>{
+    const s=DATA.samples.find(x=>x.file===b.dataset.file);
+    runMatch(s.features, s.file);
+  });
+}
+
+function renderMatch(m, photoFile){
+  const box=document.getElementById("matchBox");
+  if(!m){ box.innerHTML=""; return; }
+  const bad = m.action==="reject";
+  box.innerHTML = `<div class="match">
+    <div class="row"><span>匹配结果 · ${css(photoFile||"上传图片")}</span>
+      <span>最高 ${m.best.toFixed(3)} · 领先 ${m.gap}</span></div>
+    ${m.top.map((c,i)=>`<div class="cand">
+      <img src="${c.img}">
+      <div class="txt"><b>${c.id}</b> · ${css(c.subject)} · ${css(c.knowledge.join(" / "))}
+        <div style="color:#5a5a5a;margin-top:2px">${css(c.stem_text.slice(0,40))}…</div></div>
+      <div class="sc">${c.s.toFixed(3)}<br>
+        <span class="pill ${i===0?(bad?"md":"hi"):""}">${i===0?(bad?"低置信":"命中"):"候选"}</span></div>
+      ${i===0?`<button class="btn mini" data-add="${c.id}">加入错题本</button>`:""}
+    </div>`).join("")}
+    <div class="hint" style="margin-top:8px">action = <b>${m.action}</b>；
+      ${m.action==="auto"?"置信 ≥0.80，自动入库":m.action==="confirm"?"0.45–0.80，需人工点确认":"<0.45，拒绝并转人工"}</div>
+  </div>`;
+  const btn=box.querySelector("[data-add]");
+  if(btn) btn.onclick=()=>addCard(box.querySelector(".cand")&&m.top[0]);
+}
+
+function runMatch(features, file){
+  const m = match(features);
+  renderMatch(m, file);
+  document.getElementById("matchBox").scrollIntoView({behavior:"smooth", block:"nearest"});
+}
+
+function addCard(it){
+  if(cards.some(c=>c.id===it.id)){ alert("这道题已经在错题本里了"); return; }
+  const src=it.source||{};
+  cards.unshift({
+    id:it.id, subject:it.subject, knowledge:[...it.knowledge], answer:it.answer,
+    my_answer:it.my_answer||"", why:it.why||"", error_type:it.error_type||"K01",
+    img:it.img, stem_text:it.stem_text,
+    source_text:((src.book||src.paper||"")+" P"+(src.page||"")).trim(),
+    score:it.s, added:new Date().toISOString().slice(0,10), reviews:[]
+  });
+  save(); renderCards(); renderStats();
+  document.getElementById("cardCount").scrollIntoView({behavior:"smooth", block:"start"});
+}
+
+function cardHTML(c,i){
+  return `<div class="card" data-id="${c.id}">
+    <div class="hd">
+      <span class="no">[${c.id}]</span>
+      ${c.knowledge.map(k=>`<span class="pill">${css(k)}</span>`).join("")}
+      <span class="pill" style="border-color:#c0392b;color:#c0392b">${ERRS[c.error_type]||c.error_type}</span>
+      <span style="flex:1"></span>
+      <span style="font-size:11px;color:#5a5a5a">${css(c.source_text)}</span>
+      <button class="btn mini" data-edit="${c.id}">编辑</button>
+      <button class="btn mini red" data-del="${c.id}">删除</button>
+    </div>
+    <div class="pk"><img src="${c.img}"></div>
+    <div class="kv">
+      <div>我的错解：<b style="color:#c0392b">${css(c.my_answer||"—")}</b></div>
+      <div>正确解：<b style="color:#1e6b3a">${css(c.answer||"—")}</b></div>
+      <div>错在哪：<b>${css(c.why||"—")}</b></div>
+      <div>复习：<b>${c.added} · 命中 ${(c.score||0).toFixed(3)}</b></div>
+    </div>
+    <div class="edit">
+      <label class="f">知识点（受控词表，点选）</label>
+      <div class="vocab" data-vocab="${c.id}">
+        ${DATA.knowledge_vocab.map(k=>`<span class="tag ${c.knowledge.includes(k)?"on":"off"}" data-k="${k}">${k}</span>`).join("")}
+      </div>
+      <label class="f">错因</label>
+      <select data-f="error_type">${Object.keys(ERRS).map(k=>`<option value="${k}" ${k===c.error_type?"selected":""}>${ERRS[k]}</option>`).join("")}</select>
+      <label class="f">我的错解</label><input data-f="my_answer" value="${css(c.my_answer)}">
+      <label class="f">正确解</label><input data-f="answer" value="${css(c.answer)}">
+      <label class="f">错在哪</label><textarea data-f="why">${css(c.why)}</textarea>
+    </div>
+  </div>`;
+}
+
+function renderCards(){
+  const box=document.getElementById("cards");
+  const list = cards.filter(c=>filter==="all"||subjectOf(c)===filter);
+  box.innerHTML = list.length? list.map(cardHTML).join("")
+    : `<div class="empty">还没有错题。点上方样张模拟一次拍照，或接入真实识别后自动入库。</div>`;
+  document.getElementById("cardCount").textContent = cards.length + " 题";
+  box.querySelectorAll("[data-edit]").forEach(b=>b.onclick=e=>{
+    e.target.closest(".card").classList.toggle("open");
+  });
+  box.querySelectorAll("[data-del]").forEach(b=>b.onclick=e=>{
+    const id=e.target.dataset.del; cards=cards.filter(c=>c.id!==id); save(); renderCards(); renderStats();
+  });
+  box.querySelectorAll(".tag").forEach(t=>t.onclick=()=>{
+    const id=t.closest("[data-vocab]").dataset.vocab;
+    const c=cards.find(x=>x.id===id); const k=t.dataset.k;
+    if(c.knowledge.includes(k)){ c.knowledge=c.knowledge.filter(x=>x!==k); }
+    else c.knowledge.push(k);
+    save(); renderCards(); renderStats();
+  });
+  box.querySelectorAll(".edit input,.edit select,.edit textarea").forEach(f=>{
+    f.onchange=()=>{
+      const id=f.closest(".card").dataset.id, c=cards.find(x=>x.id===id);
+      c[f.dataset.f]=f.value; save(); renderStats();
+    };
+  });
+}
+
+function renderStats(){
+  const sub={化学:0,物理:0,数学:0}, err={};
+  cards.forEach(c=>{ sub[c.subject]=(sub[c.subject]||0)+1; err[c.error_type]=(err[c.error_type]||0)+1; });
+  document.getElementById("stats").innerHTML = `
+    <div class="st"><div class="n">${cards.length}</div><div class="l">错题总数</div></div>
+    <div class="st"><div class="n">${sub["化学"]||0}/${sub["物理"]||0}/${sub["数学"]||0}</div><div class="l">化学 / 物理 / 数学</div></div>
+    <div class="st"><div class="n">${new Set(cards.flatMap(c=>c.knowledge)).size}</div><div class="l">涉及知识点</div></div>
+    <div class="st"><div class="n">${Object.keys(err).length}</div><div class="l">错因类型数</div></div>`;
+  const max=Math.max(1,...Object.values(err));
+  document.getElementById("bars").innerHTML = Object.entries(err).sort((a,b)=>b[1]-a[1])
+    .map(([k,v])=>`<div class="bar-row"><span style="width:78px">${ERRS[k]||k}</span>
+      <span class="b" style="width:${(v/max)*180}px"></span><span>${v}</span></div>`).join("");
+}
+
+/* ---------- 事件 ---------- */
+document.getElementById("subline").textContent =
+  MODE==="app" ? "手机端 · 拍照即走：选图 → 命中图库 → 生成纯净题面卡片"
+               : "网页端 · 整理台：批量核对、改知识点与错因、一键导出 A4 错题本";
+document.getElementById("hint").textContent =
+  "匹配不调用网络：指纹由多模态模型抽取（此处样张用预置指纹模拟），检索与打分在本地完成。";
+document.getElementById("btnCam").onclick=()=>document.getElementById("file").click();
+document.getElementById("file").onchange=e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const url=URL.createObjectURL(f), img=new Image();
+  img.onload=()=>{ const dh=dhashOf(img);
+    const m=match({dhash:dh, numbers:[], formulas:[], stem_keywords:""});
+    renderMatch(m, f.name+"（仅视觉指纹）"); URL.revokeObjectURL(url); };
+  img.src=url;
+};
+document.getElementById("btnPrint").onclick=()=>window.print();
+document.getElementById("btnJson").onclick=()=>{
+  const nb={title:"错题本", generated_at:new Date().toISOString().slice(0,10),
+    cards:cards.map(c=>({id:c.id,subject:c.subject,knowledge:c.knowledge,answer:c.answer,
+      my_answer:c.my_answer,error_type:c.error_type,why:c.why,source_text:c.source_text,
+      match_score:c.score, img_data_url:c.img}))};
+  const a=document.createElement("a");
+  a.href="data:application/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(nb,null,2));
+  a.download="notebook.json"; a.click();
+};
+document.getElementById("btnClear").onclick=()=>{ if(confirm("清空本地错题？")){cards=[];save();renderCards();renderStats();} };
+document.getElementById("tabs").querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
+  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("on"));
+  t.classList.add("on"); filter=t.dataset.f; renderCards();
+});
+renderSamples(); renderCards(); renderStats();
+if(MODE==="app" && "serviceWorker" in navigator){
+  navigator.serviceWorker.register("sw.js").catch(()=>{});
+}
